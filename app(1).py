@@ -1,0 +1,236 @@
+import streamlit as st
+import google.generativeai as genai
+
+# --- 1. 페이지 설정 ---
+st.set_page_config(
+    page_title="2025 생기부 메이트",
+    page_icon="📝",
+    layout="centered"
+)
+
+# --- 2. [디자인] 숲속 테마 CSS ---
+st.markdown("""
+    <style>
+    html, body, [class*="css"] { 
+        font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; 
+    }
+    .stTextArea textarea { 
+        border-radius: 10px; 
+        border: 1px solid rgba(85, 124, 100, 0.2); 
+    }
+    h1 { font-weight: 700; letter-spacing: -1px; color: #2F4F3A; } 
+    .subtitle { font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 30px; }
+    
+    .stButton button { 
+        background-color: #557C64 !important; 
+        color: white !important;
+        border-radius: 8px; font-weight: bold; border: none; 
+        transition: all 0.2s ease; padding: 0.6rem 1rem; font-size: 16px !important;
+    }
+    .stButton button:hover { 
+        background-color: #3E5F4A !important; transform: scale(1.02); color: white !important;
+    }
+    
+    /* 슬라이더 색상: 머스터드 */
+    div.stSlider > div[data-baseweb="slider"] > div > div { background-color: #D4AC0D !important; }
+    div.stSlider > div[data-baseweb="slider"] > div > div > div { background-color: #D4AC0D !important; }
+    
+    .guide-box {
+        background-color: #F7F9F8; padding: 20px; border-radius: 10px;
+        border: 1px solid #E0E5E2; margin-bottom: 20px; font-size: 14px; color: #444; line-height: 1.6;
+    }
+    .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px; color: #557C64;}
+    
+    .warning-text { color: #8D6E63; font-size: 14px; margin-top: 5px; font-weight: 500; }
+    
+    .count-box {
+        background-color: #E3EBE6; color: #2F4F3A; padding: 12px; border-radius: 8px;
+        font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: right; border: 1px solid #C4D7CD; 
+    }
+    
+    .analysis-box {
+        background-color: #FCFDFD; border-left: 4px solid #557C64; padding: 15px;
+        border-radius: 5px; margin-bottom: 20px; font-size: 14px; color: #333;
+    }
+    
+    .footer {
+        margin-top: 50px; text-align: center; font-size: 14px; color: #888; border-top: 1px solid #eee; padding-top: 20px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- 3. API 키 설정 ---
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except FileNotFoundError:
+    api_key = None
+
+# --- 4. 헤더 영역 ---
+st.title("📝 2025 1학년부 행발 메이트")
+st.markdown("<p class='subtitle'>Gift for 2025 1st Grade Teachers</p>", unsafe_allow_html=True)
+st.divider()
+
+if not api_key:
+    with st.expander("🔐 관리자 설정 (API Key 입력)"):
+        api_key = st.text_input("Google API Key", type="password")
+
+# 작성 팁
+st.markdown("""
+<div class="guide-box">
+    <span class="guide-title">💡 정확한 생기부를 위한 작성 팁</span>
+    <b>AI는 선생님이 입력한 내용(Fact)만을 바탕으로 문장을 다듬습니다.</b><br>
+    구체적인 에피소드가 없을 경우, 일반적인 서술로 작성됩니다.<br><br>
+    1. <b>(Fact 위주)</b> '착하다'보다는 '친구의 짐을 들어주었다'고 적어주세요.<br>
+    2. <b>(오타 괜찮음)</b> '수학 4등급 질문 마니함' 처럼 대충 적어도 됩니다.<br>
+</div>
+""", unsafe_allow_html=True)
+
+# --- 5. 입력 영역 ---
+st.markdown("### 1. 학생 관찰 내용")
+student_input = st.text_area(
+    "입력창",
+    height=200,
+    placeholder="학생의 구체적인 행동 특성을 입력하세요. (내용이 구체적일수록 결과가 좋습니다)", 
+    label_visibility="collapsed"
+)
+
+if student_input and len(student_input) < 30:
+    st.markdown("<p class='warning-text'>⚠️ 입력 내용이 적습니다. 이 경우 구체적인 사례 없이 일반적인 특성 위주로 작성됩니다.</p>", unsafe_allow_html=True)
+
+# --- 6. 옵션 영역 ---
+col1, col2 = st.columns([1, 1]) 
+
+st.markdown("### 2. 강조할 핵심 키워드")
+filter_options = [
+    "👑 AI 입학사정관 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
+    "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
+    "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
+]
+try:
+    selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi")
+except:
+    selected_tags = st.multiselect("키워드 선택", filter_options)
+
+st.markdown("### 3. 희망 분량 설정 (종합본 기준)")
+target_length = st.slider(
+    "생성할 글자 수 (공백 포함)",
+    min_value=300,
+    max_value=1000,
+    value=500,
+    step=50,
+    help="AI가 최종 종합본을 이 분량에 맞춰 작성합니다."
+)
+
+# --- 7. 실행 및 결과 영역 ---
+st.markdown("")
+if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
+    if not api_key:
+        st.error("⚠️ API Key가 설정되지 않았습니다.")
+    elif not student_input:
+        st.warning("⚠️ 학생 관찰 내용을 입력해주세요!")
+    else:
+        with st.spinner(f'AI가 팩트 체크 중입니다... ({target_length}자 내외)'):
+            try:
+                genai.configure(api_key=api_key)
+
+                # 모델 자동 탐색
+                target_model = "gemini-1.5-flash" 
+                try:
+                    models = genai.list_models()
+                    available_names = [m.name for m in models if 'generateContent' in m.supported_generation_methods]
+                    for name in available_models:
+                        if 'gemini-1.5-pro' in name:
+                            target_model = name
+                            break
+                        elif 'gemini-1.5-flash' in name:
+                            target_model = name
+                except:
+                    pass
+                
+                # [수정 1] generation_config 설정 (창의성 억제)
+                # temperature를 0.2로 낮춰서 상상력을 제한합니다.
+                generation_config = genai.types.GenerationConfig(
+                    temperature=0.2 
+                )
+                
+                model = genai.GenerativeModel(target_model, generation_config=generation_config)
+
+                if not selected_tags:
+                    tags_str = "전체적인 맥락에서 가장 우수한 역량 자동 추출"
+                else:
+                    tags_str = ", ".join(selected_tags)
+
+                # [수정 2] 프롬프트 강력 제약 (없는 내용 작성 금지)
+                system_prompt = f"""
+                당신은 생활기록부 작성의 원칙을 철저히 준수하는 교사입니다.
+                입력 정보: {student_input}
+                강조 영역: [{tags_str}]
+                
+                다음 두 가지 파트로 나누어 출력하세요. 구분선: "---SPLIT---"
+
+                [Part 1] 영역별 분석 (개조식)
+                - 입력된 내용을 바탕으로 분류 및 요약
+                
+                ---SPLIT---
+
+                [Part 2] 행동특성 및 종합의견 (서술형 종합본)
+                - 목표 분량: 공백 포함 약 {target_length}자
+                
+                # ★★★ 매우 중요한 작성 원칙 (Strict Rules) ★★★
+                1. **절대 날조 금지 (Zero Hallucination)**: 
+                   - 사용자가 입력하지 않은 '구체적인 에피소드(사건)'를 절대 창작하지 마십시오.
+                   - 예: 입력값에 '청소함'이 없는데 '환경미화 때 창문을 닦음'이라고 쓰면 안 됨.
+                
+                2. **입력 내용이 빈약하거나 구체적이지 않은 경우**:
+                   - 억지로 구체적인 사례를 만들지 말고, **일반적인 행동 특성이나 태도** 위주로 서술하십시오.
+                   - 해당 행동이 학생의 성장에 미치는 긍정적인 영향이나, 교사의 교육적 해석(기대효과)을 덧붙여 분량을 채우십시오.
+                   
+                3. **작성 스타일**:
+                   - 입력된 사실(Fact) -> 교사의 해석/평가(Evaluation) 구조를 따르되, Fact는 입력된 범위 내에서만 인용하십시오.
+                """
+
+                response = model.generate_content(system_prompt)
+                full_text = response.text
+                
+                if "---SPLIT---" in full_text:
+                    parts = full_text.split("---SPLIT---")
+                    analysis_text = parts[0].strip()
+                    final_text = parts[1].strip()
+                else:
+                    analysis_text = "영역별 분석을 생성하지 못했습니다."
+                    final_text = full_text
+
+                char_count = len(final_text)
+                char_count_no_space = len(final_text.replace(" ", "").replace("\n", ""))
+                
+                st.success("작성 완료!")
+                
+                with st.expander("🔍 영역별 분석 내용 확인하기 (클릭)", expanded=True):
+                    st.markdown(analysis_text)
+                
+                st.markdown("---")
+                st.markdown("### 📋 최종 제출용 종합본")
+
+                st.markdown(f"""
+                <div class="count-box">
+                    📊 목표: {target_length}자 | 실제: {char_count}자 (공백제외 {char_count_no_space}자)
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.caption(f"※ 팩트 준수 모드 (상상력 제한됨) ({target_model})")
+                st.text_area("결과 (복사해서 나이스에 붙여넣으세요)", value=final_text, height=350)
+
+            except Exception as e:
+                st.error(f"오류가 발생했습니다: {e}")
+
+# --- 8. 푸터 ---
+st.markdown("""
+<div class="footer">
+    © 2025 <b>[선생님 이름]</b>. All rights reserved.<br>
+    문의: <a href="mailto:teacher@school.kr" style="color: #888; text-decoration: none;">teacher@school.kr</a>
+</div>
+""", unsafe_allow_html=True)
+
+
+
+
