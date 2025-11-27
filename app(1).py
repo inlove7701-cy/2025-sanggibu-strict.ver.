@@ -1,12 +1,10 @@
-import streamlit as st
-import google.generativeai as genai
-
 # --- 1. 페이지 설정 ---
 st.set_page_config(
     page_title="2025 생기부 메이트",
     page_icon="📝",
     layout="centered"
 )
+
 # --- 2. [디자인] 숲속 테마 CSS ---
 st.markdown("""
     <style>
@@ -141,38 +139,6 @@ try:
     api_key = st.secrets["GOOGLE_API_KEY"]
 except FileNotFoundError:
     api_key = None
-
-# --- 4. 헤더 영역 ---
-st.title("📝 2025 1학년부 행발 메이트")
-st.markdown("<p class='subtitle'>Gift for 2025 1st Grade Teachers</p>", unsafe_allow_html=True)
-st.divider()
-
-if not api_key:
-    with st.expander("🔐 관리자 설정 (API Key 입력)"):
-        api_key = st.text_input("Google API Key", type="password")
-
-# 작성 팁
-st.markdown("""
-<div class="guide-box">
-    <span class="guide-title">💡 풍성한 생기부를 위한 작성 팁 (3-Point)</span>
-    좋은 평가를 위해 아래 3가지 요소가 포함되도록 에피소드를 적어주세요.<br>
-    1. <b>(학업)</b> 수학 점수는 낮으나 오답노트를 꼼꼼히 작성함<br>
-    2. <b>(인성)</b> 체육대회 때 뒷정리를 도맡아 함<br>
-    3. <b>(진로)</b> 동아리에서 코딩 멘토링 활동을 함
-</div>
-""", unsafe_allow_html=True)
-
-# --- 5. 입력 영역 ---
-st.markdown("### 1. 학생 관찰 내용")
-student_input = st.text_area(
-    "입력창",
-    height=200,
-    placeholder="위의 작성 팁을 참고하여, 학생의 구체적인 행동 특성을 자유롭게 적어주세요.", 
-    label_visibility="collapsed"
-)
-
-if student_input and len(student_input) < 30:
-    st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
 # --- 4. 헤더 영역 ---
 st.title("📝 2025 1학년부 행발 메이트")
@@ -348,6 +314,7 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
 
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
+            
 
 # --- 8. 푸터 ---
 st.markdown("""
@@ -356,6 +323,7 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
