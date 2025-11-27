@@ -23,7 +23,7 @@ UI 추가: '✨ 풍성하게 작성 (기본)' vs '🛡️ 엄격하게 작성 (�
 
 아래 최종 통합 코드를 app.py에 덮어씌워 주세요.
 
-🎛️ [모드 선택 기능 탑재] 최종 완성 코드 (app.py)
+🎛️ [모드 선택 기능 탑재] 최종 완성 코드 (app(1).py)
 Python
 
 import streamlit as st
@@ -285,6 +285,7 @@ st.markdown("""
     문의: <a href="mailto:teacher@school.kr" style="color: #888; text-decoration: none;">teacher@school.kr</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
