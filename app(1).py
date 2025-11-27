@@ -3,7 +3,7 @@ import google.generativeai as genai
 
 # --- 1. 페이지 설정 ---
 st.set_page_config(
-    page_title="2025 생기부 메이트",
+    page_title="2025 생기부 메이트_strict ver.",
     page_icon="📝",
     layout="centered"
 )
@@ -281,6 +281,7 @@ if st.button("✨ 생기부 문구 생성하기", type="primary", use_container_
 
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
+
 
 
 
