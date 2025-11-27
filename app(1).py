@@ -3,34 +3,6 @@ import google.generativeai as genai
 
 # --- 1. 페이지 설정 ---
 st.set_page_config(
-    page_title="2025 생기부 메이트_strict ver.",
-    page_icon="📝",
-    layout="centered"
-)
-네, 선생님! 두 마리 토끼를 다 잡는 아주 좋은 방법입니다.
-
-상황에 따라 **"살을 좀 붙여서 풍성하게 써줬으면 좋겠을 때(창의 모드)"**가 있고, **"진짜 팩트만 건조하게 써야 할 때(엄격 모드)"**가 있으니까요.
-
-이를 위해 [작성 모드 선택] 기능을 추가했습니다.
-
-UI 추가: '✨ 풍성하게 작성 (기본)' vs '🛡️ 엄격하게 작성 (팩트)' 중 선택하는 버튼 생성
-
-로직 분기:
-
-풍성 모드: 창의성(temperature)을 0.7로 높이고, 문장을 부드럽게 다듬도록 지시.
-
-엄격 모드: 창의성(temperature)을 0.1로 낮추고, "날조 금지" 원칙을 강력하게 적용.
-
-아래 최종 통합 코드를 app.py에 덮어씌워 주세요.
-
-🎛️ [모드 선택 기능 탑재] 최종 완성 코드 (app(1).py)
-Python
-
-import streamlit as st
-import google.generativeai as genai
-
-# --- 1. 페이지 설정 ---
-st.set_page_config(
     page_title="2025 생기부 메이트",
     page_icon="📝",
     layout="centered"
@@ -102,20 +74,19 @@ except FileNotFoundError:
     api_key = None
 
 # --- 4. 헤더 영역 ---
-st.title("📝 2025 1학년부 행발 메이트_strict ver.")
-st.markdown("<p class='subtitle'>이 버전은 창의성이 제한되고, 입력이 빈약할 시 일반적인 특성으로 채워집니다 </p>", unsafe_allow_html=True)
+st.title("📝 2025 1학년부 행발 메이트")
+st.markdown("<p class='subtitle'>Gift for 2025 1st Grade Teachers</p>", unsafe_allow_html=True)
 st.divider()
 
 if not api_key:
     with st.expander("🔐 관리자 설정 (API Key 입력)"):
         api_key = st.text_input("Google API Key", type="password")
 
-# 작성 팁 헤더
+# 작성 팁
 st.markdown("""
 <div class="guide-box">
     <span class="guide-title">💡 풍성한 생기부를 위한 작성 팁 (3-Point)</span>
     좋은 평가를 위해 아래 3가지 요소가 포함되도록 에피소드를 적어주세요.<br>
-    [예시]<br>
     1. <b>(학업)</b> 수학 점수는 낮으나 오답노트를 꼼꼼히 작성함<br>
     2. <b>(인성)</b> 체육대회 때 뒷정리를 도맡아 함<br>
     3. <b>(진로)</b> 동아리에서 코딩 멘토링 활동을 함
@@ -132,12 +103,12 @@ student_input = st.text_area(
 )
 
 if student_input and len(student_input) < 30:
-    st.markdown("<p style='color:#e67e22; font-size:14px;'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
+    st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
 # --- 6. 옵션 영역 ---
 st.markdown("### 2. 작성 옵션 설정")
 
-# [NEW] 모드 선택 기능 추가
+# 모드 선택 기능
 mode = st.radio(
     "작성 모드를 선택하세요",
     ["✨ 풍성하게 작성 (내용 보강)", "🛡️ 엄격하게 작성 (팩트 중심)"],
@@ -194,7 +165,7 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
                 except:
                     pass
                 
-                # --- [핵심 로직] 모드에 따른 설정 분기 ---
+                # --- 모드에 따른 설정 분기 ---
                 if "엄격하게" in mode:
                     # 엄격 모드: 창의성 낮춤, 팩트 강조
                     temp = 0.2
@@ -223,7 +194,7 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
                 else:
                     tags_str = ", ".join(selected_tags)
 
-                # 공통 프롬프트 + 모드별 지시사항 결합
+                # 공통 프롬프트
                 system_prompt = f"""
                 당신은 입학사정관 관점을 가진 고등학교 교사입니다.
                 입력 정보: {student_input}
@@ -281,15 +252,7 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
 # --- 8. 푸터 ---
 st.markdown("""
 <div class="footer">
-    © 2025 <b>[선생님 이름]</b>. All rights reserved.<br>
-    문의: <a href="mailto:teacher@school.kr" style="color: #888; text-decoration: none;">teacher@school.kr</a>
+    © 2025 <b>Chaeyun with AI</b>. All rights reserved.<br>
+    문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
-
-
-
-
