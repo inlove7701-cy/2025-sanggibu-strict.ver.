@@ -8,47 +8,102 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. [디자인] 반응형 CSS ---
+# --- 2. [디자인] 숲속 테마 CSS (슬라이더 색상 수정됨) ---
 st.markdown("""
     <style>
+    /* 폰트 설정 */
     html, body, [class*="css"] { 
         font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; 
     }
     
+    /* 입력창: 부드러운 테두리 */
     .stTextArea textarea { 
         border-radius: 10px; 
-        border: 1px solid rgba(128, 128, 128, 0.2); 
+        border: 1px solid rgba(85, 124, 100, 0.2); 
     }
     
-    h1 { font-weight: 700; letter-spacing: -1px; }
-    .subtitle { font-size: 16px; color: gray; margin-top: -15px; margin-bottom: 30px; }
+    /* 제목 스타일 */
+    h1 { font-weight: 700; letter-spacing: -1px; color: #2F4F3A; } 
+    .subtitle { font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 30px; }
     
+    /* 버튼 스타일: 세이지 그린 */
     .stButton button { 
-        border-radius: 8px; font-weight: bold; border: none; transition: all 0.2s ease; 
+        background-color: #557C64 !important; 
+        color: white !important;
+        border-radius: 8px; 
+        font-weight: bold; 
+        border: none; 
+        transition: all 0.2s ease; 
+        padding: 0.6rem 1rem;
+        font-size: 16px !important;
     }
-    .stButton button:hover { transform: scale(1.02); }
+    .stButton button:hover { 
+        background-color: #3E5F4A !important; 
+        transform: scale(1.02); 
+        color: white !important;
+    }
     
+    /* [NEW] 슬라이더(Slider) 색상 변경: 짙은 머스터드 (Warm Mustard) */
+    div.stSlider > div[data-baseweb="slider"] > div > div {
+        background-color: #D4AC0D !important; /* 여기 색상을 바꾸면 됩니다 */
+    }
+    div.stSlider > div[data-baseweb="slider"] > div > div > div {
+        background-color: #D4AC0D !important; /* 슬라이더 손잡이 */
+    }
+    
+    /* 안내 박스 */
     .guide-box {
-        background-color: rgba(240, 242, 246, 0.5);
+        background-color: #F7F9F8; 
         padding: 20px;
         border-radius: 10px;
-        border: 1px solid rgba(128, 128, 128, 0.1);
+        border: 1px solid #E0E5E2;
         margin-bottom: 20px;
         font-size: 14px;
         color: #444;
         line-height: 1.6;
     }
-    .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px;}
+    .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px; color: #557C64;}
     
+    /* 경고 문구 */
+    .warning-text { 
+        color: #8D6E63; 
+        font-size: 14px; 
+        margin-top: 5px; 
+        font-weight: 500;
+    }
+    
+    /* 글자 수 박스 */
     .count-box {
-        background-color: #E8F6F3;
-        color: #1D8348;
-        padding: 10px;
-        border-radius: 5px;
+        background-color: #E3EBE6; 
+        color: #2F4F3A;            
+        padding: 12px;
+        border-radius: 8px;
         font-weight: bold;
         font-size: 14px;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
         text-align: right;
+        border: 1px solid #C4D7CD; 
+    }
+    
+    /* 분석 박스 */
+    .analysis-box {
+        background-color: #FCFDFD;
+        border-left: 4px solid #557C64; 
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #333;
+    }
+    
+    /* 푸터 스타일 */
+    .footer {
+        margin-top: 50px;
+        text-align: center;
+        font-size: 14px;
+        color: #888;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -92,17 +147,29 @@ student_input = st.text_area(
 if student_input and len(student_input) < 30:
     st.markdown("<p style='color:#e67e22; font-size:14px;'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
-# --- 6. 필터 영역 ---
-st.markdown("### 2. 강조할 핵심 키워드 선택")
+# --- 6. 옵션 영역 (키워드 + 글자수) ---
+col1, col2 = st.columns([1, 1]) 
+
+st.markdown("### 2. 강조할 핵심 키워드")
 filter_options = [
     "👑 AI 입학사정관 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
     "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
     "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
 ]
 try:
-    selected_tags = st.pills("이 학생의 강조하고 싶은 역량_가장 앞에 노출됩니다. 미선택시 AI 입학사정관이 판단한 중요도 순으로 노출되요~! ^^", options=filter_options, selection_mode="multi")
+    selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi")
 except:
     selected_tags = st.multiselect("키워드 선택", filter_options)
+
+st.markdown("### 3. 희망 분량 설정 (종합본 기준)")
+target_length = st.slider(
+    "생성할 글자 수 (공백 포함)",
+    min_value=200,
+    max_value=600,
+    value=500,
+    step=50,
+    help="AI가 최종 종합본을 이 분량에 맞춰 작성합니다."
+)
 
 # --- 7. 실행 및 결과 영역 ---
 st.markdown("")
@@ -112,7 +179,7 @@ if st.button("✨ 생기부 문구 생성하기", type="primary", use_container_
     elif not student_input:
         st.warning("⚠️ 학생 관찰 내용을 입력해주세요!")
     else:
-        with st.spinner('선생님의 생각을 AI가 정리중입니다...'):
+        with st.spinner(f'AI가 {target_length}자 내외로 분석 중입니다...'):
             try:
                 genai.configure(api_key=api_key)
 
@@ -128,6 +195,17 @@ if st.button("✨ 생기부 문구 생성하기", type="primary", use_container_
                         target_model = [m for m in available_models if 'gemini-pro' in m][0]
                 except:
                     pass
+                
+                model = genai.GenerativeModel(target_model)
+
+                if not selected_tags:
+                    tags_str = "전체적인 맥락에서 가장 우수한 역량 자동 추출"
+                else:
+                    tags_str = ", ".join(selected_tags)
+
+
+
+
 # [수정 1] generation_config 설정 (창의성 억제)
                 # temperature를 0.2로 낮춰서 상상력을 제한합니다.
                 generation_config = genai.types.GenerationConfig(
@@ -203,5 +281,6 @@ if st.button("✨ 생기부 문구 생성하기", type="primary", use_container_
 
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
+
 
 
