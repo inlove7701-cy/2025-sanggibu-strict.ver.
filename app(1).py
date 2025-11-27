@@ -107,7 +107,7 @@ with st.container(border=True):
     st.markdown('<p class="card-title">② 희망 분량 (공백 포함)</p>', unsafe_allow_html=True)
     target_length = st.slider(
         "글자 수",
-        min_value=300, max_value=1000, value=500, step=50,
+        min_value=100, max_value=600, value=500, step=10,
         label_visibility="collapsed"
     )
 
@@ -265,6 +265,7 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
