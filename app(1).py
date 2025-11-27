@@ -116,7 +116,7 @@ except FileNotFoundError:
 
 # --- 4. 헤더 영역 ---
 st.title("📝 2025 1학년부 행발 메이트_strict ver.")
-st.markdown("<p class='subtitle'>Gift for 2025 1st Grade Teachers_ 이 버전은 창의성이 제한되고, 입력이 빈약할 시 일반적인 특성으로 채워집니다 </p>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle'>이 버전은 창의성이 제한되고, 입력이 빈약할 시 일반적인 특성으로 채워집니다 </p>", unsafe_allow_html=True)
 st.divider()
 
 if not api_key:
@@ -281,6 +281,7 @@ if st.button("✨ 생기부 문구 생성하기", type="primary", use_container_
 
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
+
 
 
 
