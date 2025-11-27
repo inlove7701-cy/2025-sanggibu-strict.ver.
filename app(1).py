@@ -149,7 +149,7 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
     else:
         with st.spinner(f'AI가 {mode.split()[1]} 모드로 분석 중입니다...'):
             try:
-genai.configure(api_key=api_key)
+    genai.configure(api_key=api_key)
 
                 # --- [핵심 수정] 모델 자동 검색 및 안전 선택 ---
                 target_model = "gemini-pro" # 최후의 수단 (기본값)
@@ -265,4 +265,5 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
