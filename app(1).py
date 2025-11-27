@@ -19,7 +19,7 @@ st.markdown("""
     .stTextArea textarea { 
         border-radius: 12px; 
         border: 1px solid rgba(85, 124, 100, 0.2); 
-        background-color: #FAFCFA; /* 아주 연한 숲색 배경 */
+        background-color: #FAFCFA; 
     }
     
     /* 제목 스타일 */
@@ -34,7 +34,7 @@ st.markdown("""
         font-weight: bold; 
         border: none; 
         transition: all 0.2s ease; 
-        padding: 0.8rem 1rem; /* 터치하기 좋게 크기 키움 */
+        padding: 0.8rem 1rem; 
         font-size: 16px !important;
         width: 100%; /* 모바일에서 꽉 차게 */
     }
@@ -61,7 +61,7 @@ st.markdown("""
         border: 1px solid #E0E5E2; 
         margin-bottom: 25px; 
         font-size: 14px; color: #444; line-height: 1.6;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02); /* 살짝 그림자 */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
     .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px; color: #557C64;}
     
@@ -85,7 +85,7 @@ st.markdown("""
         margin-top: 50px; text-align: center; font-size: 14px; color: #888; border-top: 1px solid #eee; padding-top: 20px;
     }
     
-    /* [NEW] 옵션 카드 제목 스타일 */
+    /* 카드 제목 스타일 */
     .card-title {
         font-size: 15px; font-weight: 700; color: #557C64; margin-bottom: 10px;
     }
@@ -130,34 +130,30 @@ student_input = st.text_area(
 if student_input and len(student_input) < 30:
     st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
-# --- 6. [디자인 개선] 3단계 작성 옵션 (카드형 UI) ---
+# --- 6. [순서 변경됨] 3단계 작성 옵션 (카드형 UI) ---
 st.markdown("### 2. 작성 옵션 설정")
 
-# [반응형 레이아웃] PC에서는 2단, 모바일에서는 1단으로 자동 변경
-col1, col2 = st.columns([1.2, 0.8], gap="medium")
+# [카드 1] 작성 모드 선택 (가장 위, 가로 꽉 참)
+with st.container(border=True):
+    st.markdown('<p class="card-title">① 작성 모드 선택</p>', unsafe_allow_html=True)
+    mode = st.radio(
+        "모드",
+        ["✨ 풍성하게 (내용 보강)", "🛡️ 엄격하게 (팩트 중심)"],
+        captions=["살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 짓지 않습니다."],
+        horizontal=True, # 가로 배치
+        label_visibility="collapsed"
+    )
 
-# 왼쪽 카드: 모드 선택 (가장 중요)
-with col1:
-    with st.container(border=True): # 카드 테두리 생성
-        st.markdown('<p class="card-title">① 작성 모드 선택</p>', unsafe_allow_html=True)
-        mode = st.radio(
-            "모드",
-            ["✨ 풍성하게 (내용 보강)", "🛡️ 엄격하게 (팩트 중심)"],
-            captions=["살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 짓지 않습니다."],
-            label_visibility="collapsed"
-        )
+# [카드 2] 희망 분량 설정 (두 번째)
+with st.container(border=True):
+    st.markdown('<p class="card-title">② 희망 분량 (공백 포함)</p>', unsafe_allow_html=True)
+    target_length = st.slider(
+        "글자 수",
+        min_value=200, max_value=600, value=500, step=50,
+        label_visibility="collapsed"
+    )
 
-# 오른쪽 카드: 분량 설정
-with col2:
-    with st.container(border=True):
-        st.markdown('<p class="card-title">② 희망 분량 (공백 포함)</p>', unsafe_allow_html=True)
-        target_length = st.slider(
-            "글자 수",
-            min_value=300, max_value=1000, value=500, step=50,
-            label_visibility="collapsed"
-        )
-
-# 하단 카드: 키워드 선택 (넓게 씀)
+# [카드 3] 핵심 키워드 선택 (세 번째)
 with st.container(border=True):
     st.markdown('<p class="card-title">③ 강조할 핵심 키워드 (다중 선택)</p>', unsafe_allow_html=True)
     filter_options = [
@@ -284,6 +280,7 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
