@@ -149,20 +149,29 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
     else:
         with st.spinner(f'AI가 {mode.split()[1]} 모드로 분석 중입니다...'):
             try:
-                genai.configure(api_key=api_key)
+genai.configure(api_key=api_key)
 
-                # 모델 자동 탐색
-                target_model = "gemini-1.5-flash" 
+                # --- [핵심 수정] 모델 자동 검색 및 안전 선택 ---
+                target_model = "gemini-pro" # 최후의 수단 (기본값)
+                
                 try:
+                    # 1. 사용 가능한 모델 목록을 가져옵니다.
                     models = genai.list_models()
+                    
+                    # 2. 'generateContent' 기능을 지원하는 모델 이름만 뽑습니다.
                     available_names = [m.name for m in models if 'generateContent' in m.supported_generation_methods]
-                    for name in available_models:
+                    
+                    # 3. 우선순위에 따라 모델을 선택합니다.
+                    # (Pro가 있으면 Pro, 없으면 Flash, 그것도 없으면 기본값)
+                    for name in available_names:
                         if 'gemini-1.5-pro' in name:
                             target_model = name
-                            break
+                            break # 제일 좋은 거 찾았으면 멈춤
                         elif 'gemini-1.5-flash' in name:
                             target_model = name
-                except:
+                            # 멈추지 않고 혹시 Pro가 있는지 더 찾아봄
+                except Exception as e:
+                    # 모델 목록 조회 실패 시 그냥 'gemini-pro' 시도
                     pass
                 
                 # --- 모드에 따른 설정 분기 ---
@@ -256,3 +265,4 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
