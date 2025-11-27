@@ -36,7 +36,7 @@ st.markdown("""
         transition: all 0.2s ease; 
         padding: 0.8rem 1rem; 
         font-size: 16px !important;
-        width: 100%; /* 모바일에서 꽉 차게 */
+        width: 100%; 
     }
     .stButton button:hover { 
         background-color: #3E5F4A !important; 
@@ -44,13 +44,57 @@ st.markdown("""
         color: white !important;
     }
     
-    /* 슬라이더 색상 */
-    div.stSlider > div[data-baseweb="slider"] > div > div { background-color: #D4AC0D !important; }
-    div.stSlider > div[data-baseweb="slider"] > div > div > div { background-color: #D4AC0D !important; }
+    /* [NEW] 슬라이더(Slider) 스타일 수정: 별표(★) 모양 */
+    
+    /* 1. 슬라이더 지나간 길 (Track) 색상: 머스터드 */
+    div.stSlider > div[data-baseweb="slider"] > div > div {
+        background-color: #D4AC0D !important;
+    }
+    
+    /* 2. 슬라이더 손잡이(Thumb)를 별 모양으로 변신 */
+    div.stSlider > div[data-baseweb="slider"] > div > div > div[role="slider"] {
+        background-color: transparent !important; /* 원래 동그라미 숨김 */
+        box-shadow: none !important;              /* 그림자 제거 */
+        border: none !important;                  /* 테두리 제거 */
+        font-size: 28px;                          /* 별 크기 */
+        line-height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -8px; /* 위치 미세 조정 */
+    }
+    
+    /* 3. 별 문자(★) 삽입 */
+    div.stSlider > div[data-baseweb="slider"] > div > div > div[role="slider"]::after {
+        content: "★";       /* 별표 문자 */
+        color: #D4AC0D;     /* 머스터드 색상 */
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* 살짝 입체감 */
+    }
     
     /* 라디오 버튼 선택 박스 스타일 */
     div[data-testid="stRadio"] {
         background-color: transparent;
+    }
+    
+    /* 라디오 버튼 양쪽 정렬 */
+    div[data-testid="stRadio"] > div[role="radiogroup"] {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        gap: 10px;
+    }
+    div[data-testid="stRadio"] > div[role="radiogroup"] > label {
+        flex-grow: 1;
+        background-color: #FFFFFF;
+        border: 1px solid #E0E5E2;
+        border-radius: 8px;
+        padding: 12px;
+        justify-content: center;
+    }
+    div[data-testid="stRadio"] > div[role="radiogroup"] > label:hover {
+        border-color: #557C64;
+        background-color: #F7F9F8;
     }
     
     /* 안내 박스 */
@@ -130,30 +174,62 @@ student_input = st.text_area(
 if student_input and len(student_input) < 30:
     st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
-# --- 6. [순서 변경됨] 3단계 작성 옵션 (카드형 UI) ---
+# --- 4. 헤더 영역 ---
+st.title("📝 2025 1학년부 행발 메이트")
+st.markdown("<p class='subtitle'>Gift for 2025 1st Grade Teachers</p>", unsafe_allow_html=True)
+st.divider()
+
+if not api_key:
+    with st.expander("🔐 관리자 설정 (API Key 입력)"):
+        api_key = st.text_input("Google API Key", type="password")
+
+# 작성 팁
+st.markdown("""
+<div class="guide-box">
+    <span class="guide-title">💡 풍성한 생기부를 위한 작성 팁 (3-Point)</span>
+    좋은 평가를 위해 아래 3가지 요소가 포함되도록 에피소드를 적어주세요.<br>
+    1. <b>(학업)</b> 수학 점수는 낮으나 오답노트를 꼼꼼히 작성함<br>
+    2. <b>(인성)</b> 체육대회 때 뒷정리를 도맡아 함<br>
+    3. <b>(진로)</b> 동아리에서 코딩 멘토링 활동을 함
+</div>
+""", unsafe_allow_html=True)
+
+# --- 5. 입력 영역 ---
+st.markdown("### 1. 학생 관찰 내용")
+student_input = st.text_area(
+    "입력창",
+    height=200,
+    placeholder="위의 작성 팁을 참고하여, 학생의 구체적인 행동 특성을 자유롭게 적어주세요.", 
+    label_visibility="collapsed"
+)
+
+if student_input and len(student_input) < 30:
+    st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
+
+# --- 6. 3단계 작성 옵션 (카드형 UI) ---
 st.markdown("### 2. 작성 옵션 설정")
 
-# [카드 1] 작성 모드 선택 (가장 위, 가로 꽉 참)
+# [카드 1] 작성 모드 선택
 with st.container(border=True):
     st.markdown('<p class="card-title">① 작성 모드 선택</p>', unsafe_allow_html=True)
     mode = st.radio(
         "모드",
         ["✨ 풍성하게 (내용 보강)", "🛡️ 엄격하게 (팩트 중심)"],
         captions=["살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 짓지 않습니다."],
-        horizontal=True, # 가로 배치
+        horizontal=True, 
         label_visibility="collapsed"
     )
 
-# [카드 2] 희망 분량 설정 (두 번째)
+# [카드 2] 희망 분량 설정 (별표 슬라이더 적용)
 with st.container(border=True):
     st.markdown('<p class="card-title">② 희망 분량 (공백 포함)</p>', unsafe_allow_html=True)
     target_length = st.slider(
         "글자 수",
-        min_value=200, max_value=600, value=500, step=50,
+        min_value=300, max_value=1000, value=500, step=50,
         label_visibility="collapsed"
     )
 
-# [카드 3] 핵심 키워드 선택 (세 번째)
+# [카드 3] 핵심 키워드 선택
 with st.container(border=True):
     st.markdown('<p class="card-title">③ 강조할 핵심 키워드 (다중 선택)</p>', unsafe_allow_html=True)
     filter_options = [
@@ -280,6 +356,7 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
