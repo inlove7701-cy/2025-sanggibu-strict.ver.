@@ -105,39 +105,41 @@ student_input = st.text_area(
 if student_input and len(student_input) < 30:
     st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
-# --- 6. 옵션 영역 ---
+# --- 6. [수정됨] 3단계 작성 옵션 영역 ---
 st.markdown("### 2. 작성 옵션 설정")
 
-# 모드 선택 기능
+# [Step 1] 작성 모드 (가로형)
+st.markdown('<p class="step-title">(1) 작성 모드 선택</p>', unsafe_allow_html=True)
 mode = st.radio(
-    "작성 모드를 선택하세요",
+    "모드 선택",
     ["✨ 풍성하게 작성 (내용 보강)", "🛡️ 엄격하게 작성 (팩트 중심)"],
-    captions=["입력 내용이 적어도 살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 지어내지 않습니다."]
+    captions=["살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 짓지 않습니다."],
+    horizontal=True, # 가로 배치
+    label_visibility="collapsed"
 )
 
-col1, col2 = st.columns([1, 1]) 
+# [Step 2] 핵심 키워드 (전체 너비)
+st.markdown('<p class="step-title">(2) 강조할 핵심 키워드</p>', unsafe_allow_html=True)
 filter_options = [
     "👑 AI 입학사정관 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
     "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
     "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
 ]
-with col1:
-    st.caption("강조할 핵심 키워드")
-    try:
-        selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi", label_visibility="collapsed")
-    except:
-        selected_tags = st.multiselect("키워드 선택", filter_options, label_visibility="collapsed")
+try:
+    selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi", label_visibility="collapsed")
+except:
+    selected_tags = st.multiselect("키워드 선택", filter_options, label_visibility="collapsed")
 
-with col2:
-    st.caption("희망 분량 (공백 포함)")
-    target_length = st.slider(
-        "글자 수",
-        min_value=300,
-        max_value=1000,
-        value=500,
-        step=50,
-        label_visibility="collapsed"
-    )
+# [Step 3] 분량 설정 (전체 너비)
+st.markdown('<p class="step-title">(3) 희망 분량 설정 (공백 포함)</p>', unsafe_allow_html=True)
+target_length = st.slider(
+    "글자 수",
+    min_value=300,
+    max_value=1000,
+    value=500,
+    step=50,
+    label_visibility="collapsed"
+)
 
 # --- 7. 실행 및 결과 영역 ---
 st.markdown("")
@@ -266,6 +268,7 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
