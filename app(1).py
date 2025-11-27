@@ -8,53 +8,47 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- 2. [디자인] 숲속 테마 CSS ---
+# --- 2. [디자인] 반응형 CSS ---
 st.markdown("""
     <style>
     html, body, [class*="css"] { 
         font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; 
     }
+    
     .stTextArea textarea { 
         border-radius: 10px; 
-        border: 1px solid rgba(85, 124, 100, 0.2); 
+        border: 1px solid rgba(128, 128, 128, 0.2); 
     }
-    h1 { font-weight: 700; letter-spacing: -1px; color: #2F4F3A; } 
-    .subtitle { font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 30px; }
+    
+    h1 { font-weight: 700; letter-spacing: -1px; }
+    .subtitle { font-size: 16px; color: gray; margin-top: -15px; margin-bottom: 30px; }
     
     .stButton button { 
-        background-color: #557C64 !important; 
-        color: white !important;
-        border-radius: 8px; font-weight: bold; border: none; 
-        transition: all 0.2s ease; padding: 0.6rem 1rem; font-size: 16px !important;
+        border-radius: 8px; font-weight: bold; border: none; transition: all 0.2s ease; 
     }
-    .stButton button:hover { 
-        background-color: #3E5F4A !important; transform: scale(1.02); color: white !important;
-    }
-    
-    /* 슬라이더 색상: 머스터드 */
-    div.stSlider > div[data-baseweb="slider"] > div > div { background-color: #D4AC0D !important; }
-    div.stSlider > div[data-baseweb="slider"] > div > div > div { background-color: #D4AC0D !important; }
+    .stButton button:hover { transform: scale(1.02); }
     
     .guide-box {
-        background-color: #F7F9F8; padding: 20px; border-radius: 10px;
-        border: 1px solid #E0E5E2; margin-bottom: 20px; font-size: 14px; color: #444; line-height: 1.6;
+        background-color: rgba(240, 242, 246, 0.5);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid rgba(128, 128, 128, 0.1);
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #444;
+        line-height: 1.6;
     }
-    .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px; color: #557C64;}
-    
-    .warning-text { color: #8D6E63; font-size: 14px; margin-top: 5px; font-weight: 500; }
+    .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px;}
     
     .count-box {
-        background-color: #E3EBE6; color: #2F4F3A; padding: 12px; border-radius: 8px;
-        font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: right; border: 1px solid #C4D7CD; 
-    }
-    
-    .analysis-box {
-        background-color: #FCFDFD; border-left: 4px solid #557C64; padding: 15px;
-        border-radius: 5px; margin-bottom: 20px; font-size: 14px; color: #333;
-    }
-    
-    .footer {
-        margin-top: 50px; text-align: center; font-size: 14px; color: #888; border-top: 1px solid #eee; padding-top: 20px;
+        background-color: #E8F6F3;
+        color: #1D8348;
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 5px;
+        text-align: right;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -74,14 +68,15 @@ if not api_key:
     with st.expander("🔐 관리자 설정 (API Key 입력)"):
         api_key = st.text_input("Google API Key", type="password")
 
-# 작성 팁
+# 작성 팁 헤더
 st.markdown("""
 <div class="guide-box">
-    <span class="guide-title">💡 정확한 생기부를 위한 작성 팁</span>
-    <b>AI는 선생님이 입력한 내용(Fact)만을 바탕으로 문장을 다듬습니다.</b><br>
-    구체적인 에피소드가 없을 경우, 일반적인 서술로 작성됩니다.<br><br>
-    1. <b>(Fact 위주)</b> '착하다'보다는 '친구의 짐을 들어주었다'고 적어주세요.<br>
-    2. <b>(오타 괜찮음)</b> '수학 4등급 질문 마니함' 처럼 대충 적어도 됩니다.<br>
+    <span class="guide-title">💡 풍성한 생기부를 위한 작성 팁 (3-Point)</span>
+    좋은 평가를 위해 아래 3가지 요소가 포함되도록 에피소드를 적어주세요.<br>
+    [예시]<br>
+    1. <b>(학업)</b> 수학 점수는 낮으나 오답노트를 꼼꼼히 작성함<br>
+    2. <b>(인성)</b> 체육대회 때 뒷정리를 도맡아 함<br>
+    3. <b>(진로)</b> 동아리에서 코딩 멘토링 활동을 함
 </div>
 """, unsafe_allow_html=True)
 
@@ -90,64 +85,50 @@ st.markdown("### 1. 학생 관찰 내용")
 student_input = st.text_area(
     "입력창",
     height=200,
-    placeholder="학생의 구체적인 행동 특성을 입력하세요. (내용이 구체적일수록 결과가 좋습니다)", 
+    placeholder="위의 작성 팁을 참고하여, 학생의 구체적인 행동 특성을 자유롭게 적어주세요.", 
     label_visibility="collapsed"
 )
 
 if student_input and len(student_input) < 30:
-    st.markdown("<p class='warning-text'>⚠️ 입력 내용이 적습니다. 이 경우 구체적인 사례 없이 일반적인 특성 위주로 작성됩니다.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#e67e22; font-size:14px;'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
-# --- 6. 옵션 영역 ---
-col1, col2 = st.columns([1, 1]) 
-
-st.markdown("### 2. 강조할 핵심 키워드")
+# --- 6. 필터 영역 ---
+st.markdown("### 2. 강조할 핵심 키워드 선택")
 filter_options = [
     "👑 AI 입학사정관 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
     "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
     "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
 ]
 try:
-    selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi")
+    selected_tags = st.pills("이 학생의 강조하고 싶은 역량_가장 앞에 노출됩니다. 미선택시 AI 입학사정관이 판단한 중요도 순으로 노출되요~! ^^", options=filter_options, selection_mode="multi")
 except:
     selected_tags = st.multiselect("키워드 선택", filter_options)
 
-st.markdown("### 3. 희망 분량 설정 (종합본 기준)")
-target_length = st.slider(
-    "생성할 글자 수 (공백 포함)",
-    min_value=300,
-    max_value=1000,
-    value=500,
-    step=50,
-    help="AI가 최종 종합본을 이 분량에 맞춰 작성합니다."
-)
-
 # --- 7. 실행 및 결과 영역 ---
 st.markdown("")
-if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
+if st.button("✨ 생기부 문구 생성하기", type="primary", use_container_width=True):
     if not api_key:
         st.error("⚠️ API Key가 설정되지 않았습니다.")
     elif not student_input:
         st.warning("⚠️ 학생 관찰 내용을 입력해주세요!")
     else:
-        with st.spinner(f'AI가 팩트 체크 중입니다... ({target_length}자 내외)'):
+        with st.spinner('선생님의 생각을 AI가 정리중입니다...'):
             try:
                 genai.configure(api_key=api_key)
 
-                # 모델 자동 탐색
-                target_model = "gemini-1.5-flash" 
+                # 모델 자동 탐색 로직
+                target_model = "gemini-pro"
                 try:
-                    models = genai.list_models()
-                    available_names = [m.name for m in models if 'generateContent' in m.supported_generation_methods]
-                    for name in available_models:
-                        if 'gemini-1.5-pro' in name:
-                            target_model = name
-                            break
-                        elif 'gemini-1.5-flash' in name:
-                            target_model = name
+                    available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                    if any('gemini-1.5-pro' in m for m in available_models):
+                        target_model = [m for m in available_models if 'gemini-1.5-pro' in m][0]
+                    elif any('gemini-1.5-flash' in m for m in available_models):
+                        target_model = [m for m in available_models if 'gemini-1.5-flash' in m][0]
+                    elif any('gemini-pro' in m for m in available_models):
+                        target_model = [m for m in available_models if 'gemini-pro' in m][0]
                 except:
                     pass
-                
-                # [수정 1] generation_config 설정 (창의성 억제)
+# [수정 1] generation_config 설정 (창의성 억제)
                 # temperature를 0.2로 낮춰서 상상력을 제한합니다.
                 generation_config = genai.types.GenerationConfig(
                     temperature=0.2 
@@ -222,15 +203,5 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
 
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {e}")
-
-# --- 8. 푸터 ---
-st.markdown("""
-<div class="footer">
-    © 2025 <b>[선생님 이름]</b>. All rights reserved.<br>
-    문의: <a href="mailto:teacher@school.kr" style="color: #888; text-decoration: none;">teacher@school.kr</a>
-</div>
-""", unsafe_allow_html=True)
-
-
 
 
