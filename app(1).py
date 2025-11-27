@@ -7,62 +7,87 @@ st.set_page_config(
     page_icon="📝",
     layout="centered"
 )
-
 # --- 2. [디자인] 숲속 테마 CSS ---
 st.markdown("""
     <style>
+    /* 폰트 설정 */
     html, body, [class*="css"] { 
         font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; 
     }
+    
+    /* 입력창: 부드러운 테두리 */
     .stTextArea textarea { 
-        border-radius: 10px; 
+        border-radius: 12px; 
         border: 1px solid rgba(85, 124, 100, 0.2); 
+        background-color: #FAFCFA; /* 아주 연한 숲색 배경 */
     }
+    
+    /* 제목 스타일 */
     h1 { font-weight: 700; letter-spacing: -1px; color: #2F4F3A; } 
     .subtitle { font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 30px; }
     
+    /* 버튼 스타일: 세이지 그린 */
     .stButton button { 
         background-color: #557C64 !important; 
         color: white !important;
-        border-radius: 8px; font-weight: bold; border: none; 
-        transition: all 0.2s ease; padding: 0.6rem 1rem; font-size: 16px !important;
+        border-radius: 10px; 
+        font-weight: bold; 
+        border: none; 
+        transition: all 0.2s ease; 
+        padding: 0.8rem 1rem; /* 터치하기 좋게 크기 키움 */
+        font-size: 16px !important;
+        width: 100%; /* 모바일에서 꽉 차게 */
     }
     .stButton button:hover { 
-        background-color: #3E5F4A !important; transform: scale(1.02); color: white !important;
+        background-color: #3E5F4A !important; 
+        transform: scale(1.01); 
+        color: white !important;
     }
     
-    /* 슬라이더 색상: 머스터드 */
+    /* 슬라이더 색상 */
     div.stSlider > div[data-baseweb="slider"] > div > div { background-color: #D4AC0D !important; }
     div.stSlider > div[data-baseweb="slider"] > div > div > div { background-color: #D4AC0D !important; }
     
-    /* 라디오 버튼 스타일 */
-    div[data-testid="stRadio"] > div {
-        background-color: #F7F9F8;
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #E0E5E2;
+    /* 라디오 버튼 선택 박스 스타일 */
+    div[data-testid="stRadio"] {
+        background-color: transparent;
     }
     
+    /* 안내 박스 */
     .guide-box {
-        background-color: #F7F9F8; padding: 20px; border-radius: 10px;
-        border: 1px solid #E0E5E2; margin-bottom: 20px; font-size: 14px; color: #444; line-height: 1.6;
+        background-color: #F7F9F8; 
+        padding: 20px; 
+        border-radius: 12px;
+        border: 1px solid #E0E5E2; 
+        margin-bottom: 25px; 
+        font-size: 14px; color: #444; line-height: 1.6;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02); /* 살짝 그림자 */
     }
     .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px; color: #557C64;}
     
+    /* 경고 문구 */
     .warning-text { color: #8D6E63; font-size: 14px; margin-top: 5px; font-weight: 500; }
     
+    /* 글자 수 박스 */
     .count-box {
         background-color: #E3EBE6; color: #2F4F3A; padding: 12px; border-radius: 8px;
         font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: right; border: 1px solid #C4D7CD; 
     }
     
+    /* 분석 박스 */
     .analysis-box {
         background-color: #FCFDFD; border-left: 4px solid #557C64; padding: 15px;
         border-radius: 5px; margin-bottom: 20px; font-size: 14px; color: #333;
     }
     
+    /* 푸터 스타일 */
     .footer {
         margin-top: 50px; text-align: center; font-size: 14px; color: #888; border-top: 1px solid #eee; padding-top: 20px;
+    }
+    
+    /* [NEW] 옵션 카드 제목 스타일 */
+    .card-title {
+        font-size: 15px; font-weight: 700; color: #557C64; margin-bottom: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -105,41 +130,46 @@ student_input = st.text_area(
 if student_input and len(student_input) < 30:
     st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
 
-# --- 6. [수정됨] 3단계 작성 옵션 영역 ---
+# --- 6. [디자인 개선] 3단계 작성 옵션 (카드형 UI) ---
 st.markdown("### 2. 작성 옵션 설정")
 
-# [Step 1] 작성 모드 (가로형)
-st.markdown('<p class="step-title">(1) 작성 모드 선택</p>', unsafe_allow_html=True)
-mode = st.radio(
-    "모드 선택",
-    ["✨ 풍성하게 작성 (내용 보강)", "🛡️ 엄격하게 작성 (팩트 중심)"],
-    captions=["살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 짓지 않습니다."],
-    horizontal=True, # 가로 배치
-    label_visibility="collapsed"
-)
+# [반응형 레이아웃] PC에서는 2단, 모바일에서는 1단으로 자동 변경
+col1, col2 = st.columns([1.2, 0.8], gap="medium")
 
-# [Step 2] 핵심 키워드 (전체 너비)
-st.markdown('<p class="step-title">(2) 강조할 핵심 키워드</p>', unsafe_allow_html=True)
-filter_options = [
-    "👑 AI 입학사정관 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
-    "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
-    "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
-]
-try:
-    selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi", label_visibility="collapsed")
-except:
-    selected_tags = st.multiselect("키워드 선택", filter_options, label_visibility="collapsed")
+# 왼쪽 카드: 모드 선택 (가장 중요)
+with col1:
+    with st.container(border=True): # 카드 테두리 생성
+        st.markdown('<p class="card-title">① 작성 모드 선택</p>', unsafe_allow_html=True)
+        mode = st.radio(
+            "모드",
+            ["✨ 풍성하게 (내용 보강)", "🛡️ 엄격하게 (팩트 중심)"],
+            captions=["살을 붙여 자연스럽게 만듭니다.", "입력된 사실 외에는 절대 짓지 않습니다."],
+            label_visibility="collapsed"
+        )
 
-# [Step 3] 분량 설정 (전체 너비)
-st.markdown('<p class="step-title">(3) 희망 분량 설정 (공백 포함)</p>', unsafe_allow_html=True)
-target_length = st.slider(
-    "글자 수",
-    min_value=300,
-    max_value=1000,
-    value=500,
-    step=50,
-    label_visibility="collapsed"
-)
+# 오른쪽 카드: 분량 설정
+with col2:
+    with st.container(border=True):
+        st.markdown('<p class="card-title">② 희망 분량 (공백 포함)</p>', unsafe_allow_html=True)
+        target_length = st.slider(
+            "글자 수",
+            min_value=300, max_value=1000, value=500, step=50,
+            label_visibility="collapsed"
+        )
+
+# 하단 카드: 키워드 선택 (넓게 씀)
+with st.container(border=True):
+    st.markdown('<p class="card-title">③ 강조할 핵심 키워드 (다중 선택)</p>', unsafe_allow_html=True)
+    filter_options = [
+        "👑 AI 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
+        "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
+        "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
+    ]
+    try:
+        selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi", label_visibility="collapsed")
+    except:
+        selected_tags = st.multiselect("키워드 선택", filter_options, label_visibility="collapsed")
+
 
 # --- 7. 실행 및 결과 영역 ---
 st.markdown("")
@@ -150,36 +180,25 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
         st.warning("⚠️ 학생 관찰 내용을 입력해주세요!")
     else:
         with st.spinner(f'AI가 {mode.split()[1]} 모드로 분석 중입니다...'):
-# --- [수정] 들여쓰기 교정된 try 블록 ---
             try:
                 genai.configure(api_key=api_key)
 
-                # --- [핵심 수정] 모델 자동 검색 및 안전 선택 ---
-                target_model = "gemini-pro" # 최후의 수단 (기본값)
-                
+                # 모델 자동 탐색
+                target_model = "gemini-pro"
                 try:
-                    # 1. 사용 가능한 모델 목록을 가져옵니다.
                     models = genai.list_models()
-                    
-                    # 2. 'generateContent' 기능을 지원하는 모델 이름만 뽑습니다.
                     available_names = [m.name for m in models if 'generateContent' in m.supported_generation_methods]
-                    
-                    # 3. 우선순위에 따라 모델을 선택합니다.
-                    # (Pro가 있으면 Pro, 없으면 Flash, 그것도 없으면 기본값)
                     for name in available_names:
                         if 'gemini-1.5-pro' in name:
                             target_model = name
-                            break # 제일 좋은 거 찾았으면 멈춤
+                            break
                         elif 'gemini-1.5-flash' in name:
                             target_model = name
-                            # 멈추지 않고 혹시 Pro가 있는지 더 찾아봄
-                except Exception as e:
-                    # 모델 목록 조회 실패 시 그냥 'gemini-pro' 시도
+                except:
                     pass
                 
-                # --- 모드에 따른 설정 분기 ---
+                # 모드별 설정
                 if "엄격하게" in mode:
-                    # 엄격 모드: 창의성 낮춤, 팩트 강조
                     temp = 0.2
                     prompt_instruction = """
                     # ★★★ 엄격 작성 원칙 (Strict Mode) ★★★
@@ -188,7 +207,6 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
                     3. 입력된 사실(Fact)에 기반한 교사의 평가 위주로 작성하십시오.
                     """
                 else:
-                    # 풍성 모드: 창의성 높임, 표현력 강화
                     temp = 0.75
                     prompt_instruction = """
                     # ★★★ 풍성 작성 원칙 (Rich Mode) ★★★
@@ -197,7 +215,6 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
                     3. 학생의 잠재력과 성장 가능성을 긍정적인 어조로 구체화하여 서술하십시오.
                     """
 
-                # 설정 적용
                 generation_config = genai.types.GenerationConfig(temperature=temp)
                 model = genai.GenerativeModel(target_model, generation_config=generation_config)
 
@@ -206,7 +223,6 @@ if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
                 else:
                     tags_str = ", ".join(selected_tags)
 
-                # 공통 프롬프트
                 system_prompt = f"""
                 당신은 입학사정관 관점을 가진 고등학교 교사입니다.
                 입력 정보: {student_input}
@@ -268,6 +284,7 @@ st.markdown("""
     문의: <a href="inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
