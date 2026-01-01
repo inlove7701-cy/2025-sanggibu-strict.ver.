@@ -4,31 +4,24 @@ import time
 
 # --- 1. 페이지 설정 ---
 st.set_page_config(
-    page_title="2025 생기부 메이트",
-    page_icon="📝",
+    page_title="2025 생기부 메이트 (무중단 버전)",
+    page_icon="🛡️",
     layout="centered"
 )
 
-# --- 2. [디자인] 숲속 테마 CSS ---
+# --- 2. CSS 스타일 ---
 st.markdown("""
     <style>
     html, body, [class*="css"] { font-family: 'Pretendard', sans-serif; }
-    .stTextArea textarea { border-radius: 12px; border: 1px solid rgba(85, 124, 100, 0.2); background-color: #FAFCFA; }
-    h1 { font-weight: 700; letter-spacing: -1px; color: #2F4F3A; } 
-    .subtitle { font-size: 16px; color: #666; margin-top: -15px; margin-bottom: 30px; }
-    
+    .stTextArea textarea { border-radius: 12px; background-color: #FAFCFA; border: 1px solid #ddd; }
     .stButton button { 
-        background-color: #557C64 !important; color: white !important;
-        border-radius: 10px; font-weight: bold; border: none; 
-        transition: all 0.2s ease; padding: 0.8rem 1rem; font-size: 16px !important; width: 100%; 
+        background-color: #2E7D32 !important; color: white !important; 
+        font-weight: bold; border-radius: 10px; border: none; padding: 0.8rem; width: 100%;
     }
-    .stButton button:hover { background-color: #3E5F4A !important; transform: scale(1.01); }
-    
-    .guide-box { background-color: #F7F9F8; padding: 20px; border-radius: 12px; border: 1px solid #E0E5E2; margin-bottom: 25px; font-size: 14px; color: #444; line-height: 1.6; }
-    .guide-title { font-weight: bold; margin-bottom: 8px; display: block; font-size: 15px; color: #557C64;}
-    .warning-text { color: #8D6E63; font-size: 14px; margin-top: 5px; font-weight: 500; }
-    .count-box { background-color: #E3EBE6; color: #2F4F3A; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-bottom: 10px; text-align: right; border: 1px solid #C4D7CD; }
-    .footer { margin-top: 50px; text-align: center; font-size: 14px; color: #888; border-top: 1px solid #eee; padding-top: 20px; }
+    .stButton button:hover { background-color: #1B5E20 !important; transform: scale(1.02); }
+    .guide-box { background-color: #E8F5E9; padding: 15px; border-radius: 10px; border: 1px solid #C8E6C9; margin-bottom: 20px; color: #1B5E20; }
+    .success-box { background-color: #E3F2FD; color: #0D47A1; padding: 10px; border-radius: 5px; font-size: 0.9em; margin-bottom: 10px; border-left: 4px solid #1976D2; }
+    .error-log { font-size: 0.8em; color: #999; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -38,182 +31,154 @@ try:
 except:
     api_key = None
 
-# --- 4. 헤더 영역 ---
-st.title("📝 2025 1학년부 행발 메이트")
-st.markdown("<p class='subtitle'>Gift for 2025 1st Grade Teachers</p>", unsafe_allow_html=True)
+# --- 4. [핵심 기능] 무조건 성공하는 AI 함수 ---
+def generate_with_fallback(prompt, user_selected_model):
+    """
+    사용자가 선택한 모델이 실패하면, 자동으로 다른 모델들을 순차적으로 시도하여
+    어떻게든 결과를 만들어내는 함수입니다.
+    """
+    # 시도할 모델 순서 (사용자 선택 모델 -> 1.5 Flash -> 1.5 Pro -> 1.0 Pro)
+    # 1.5 Flash가 무료 사용량이 가장 많고 안정적이라 우선순위가 높습니다.
+    candidate_models = [
+        user_selected_model,    # 1순위: 사용자가 고른 거
+        "gemini-1.5-flash",     # 2순위: 가장 빠르고 튼튼한 놈
+        "gemini-1.5-pro",       # 3순위: 성능 좋은 놈
+        "gemini-1.0-pro"        # 4순위: 구버전 (최후의 보루)
+    ]
+    
+    # 중복 제거 (사용자가 고른 게 1.5-flash면 리스트에 두 번 들어가는 것 방지)
+    candidate_models = sorted(set(candidate_models), key=candidate_models.index)
+
+    logs = []
+    
+    genai.configure(api_key=api_key)
+
+    for model_name in candidate_models:
+        try:
+            # 모델 생성 시도
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            
+            # 성공하면 바로 반환 (성공한 모델 이름과 함께)
+            return response.text, model_name, logs
+            
+        except Exception as e:
+            # 실패하면 로그 남기고 다음 모델로 넘어감 (continue)
+            error_msg = str(e)
+            logs.append(f"❌ {model_name} 실패: {error_msg[:50]}...")
+            time.sleep(1) # 1초 숨 고르기
+            continue
+            
+    # 모든 모델이 다 실패했을 경우
+    return None, None, logs
+
+# --- 5. UI 구성 ---
+st.title("🛡️ 2025 생기부 메이트")
+st.markdown("##### 오류 없이 무조건 결과를 뽑아내는 강력한 버전")
 st.divider()
 
 if not api_key:
-    with st.expander("🔐 관리자 설정 (API Key 입력)"):
+    with st.expander("🔐 관리자 설정"):
         api_key = st.text_input("Google API Key", type="password")
 
-# 작성 팁
 st.markdown("""
 <div class="guide-box">
-    <span class="guide-title">💡 풍성한 생기부를 위한 작성 팁 (3-Point)</span>
-    좋은 평가를 위해 아래 3가지 요소가 포함되도록 에피소드를 적어주세요.<br>
-    1. <b>(학업)</b> 수학 점수는 낮으나 오답노트를 꼼꼼히 작성함<br>
-    2. <b>(인성)</b> 체육대회 때 뒷정리를 도맡아 함<br>
-    3. <b>(진로)</b> 동아리에서 코딩 멘토링 활동을 함
+    <b>💡 안심하세요!</b><br>
+    이 버전은 "사용량 초과"나 "모델 오류"가 발생해도 
+    <b>자동으로 다른 모델을 찾아내서</b> 끝까지 글을 써줍니다.
 </div>
 """, unsafe_allow_html=True)
 
-# --- 5. 입력 영역 ---
-st.markdown("### 1. 학생 관찰 내용")
-student_input = st.text_area(
-    "입력창",
-    height=200,
-    placeholder="위의 작성 팁을 참고하여, 학생의 구체적인 행동 특성을 자유롭게 적어주세요.", 
-    label_visibility="collapsed"
-)
+# 입력 영역
+st.subheader("1. 1학기 내용 (요약)")
+sem1_input = st.text_area("1학기 내용 입력", height=100, placeholder="기존 생기부 내용", label_visibility="collapsed")
 
-if student_input and len(student_input) < 30:
-    st.markdown("<p class='warning-text'>⚠️ 내용이 조금 짧습니다. 3가지 에피소드가 들어갔나요?</p>", unsafe_allow_html=True)
+st.subheader("2. 2학기 활동 키워드")
+st.caption("※ 기고문, 북리뷰, AI 활용 활동으로 자동 확장됩니다.")
+sem2_input = st.text_area("2학기 주제 입력", height=100, placeholder="예: AI 의료 윤리, 독서, 토론 등", label_visibility="collapsed")
 
-# --- 6. 3단계 작성 옵션 ---
-st.markdown("### 2. 작성 옵션 설정")
+# 옵션
+col1, col2 = st.columns(2)
+with col1:
+    mode = st.radio("작성 모드", ["✨ 풍성하게", "🛡️ 엄격하게"], horizontal=True)
+with col2:
+    target_length = st.slider("목표 글자 수", 300, 1000, 500, 50)
 
-# [카드 1] 모드 선택
-with st.container(border=True):
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown('**① 작성 모드 선택**')
-        mode = st.radio(
-            "모드",
-            ["✨ 풍성하게 (내용 보강)", "🛡️ 엄격하게 (팩트 중심)"],
-            horizontal=True, 
-            label_visibility="collapsed"
-        )
-    with col2:
-        st.markdown('**② 희망 분량 (공백 포함)**')
-        target_length = st.slider(
-            "글자 수",
-            min_value=100, max_value=600, value=500, step=10,
-            label_visibility="collapsed"
-        )
+# 모델 선택 (실패 시 자동 우회하므로 선호도만 조사)
+manual_model = st.selectbox("선호하는 모델 (실패 시 자동 변경됨)", ["gemini-1.5-flash", "gemini-1.5-pro"])
 
-# [카드 3] 키워드 선택
-with st.container(border=True):
-    st.markdown('**③ 강조할 핵심 키워드 (다중 선택)**')
-    filter_options = [
-        "👑 AI 자동 판단", "📘 학업 역량", "🤝 공동체 역량", 
-        "🚀 진로 역량", "🌱 발전 가능성", "🎨 창의적 문제해결력", 
-        "😊 인성/나눔/배려", "⏰ 성실성/규칙준수"
-    ]
-    try:
-        selected_tags = st.pills("키워드 버튼", options=filter_options, selection_mode="multi", label_visibility="collapsed")
-    except:
-        selected_tags = st.multiselect("키워드 선택", filter_options, label_visibility="collapsed")
-
-# --- 7. 실행 및 결과 영역 ---
-st.markdown("")
-if st.button("✨ 생기부 문구 생성하기", use_container_width=True):
+# --- 6. 실행 ---
+if st.button("✨ 무조건 생성하기", use_container_width=True):
     if not api_key:
-        st.error("⚠️ API Key가 설정되지 않았습니다.")
-    elif not student_input:
-        st.warning("⚠️ 학생 관찰 내용을 입력해주세요!")
+        st.error("API Key가 없습니다.")
+    elif not sem1_input and not sem2_input:
+        st.warning("내용을 입력해주세요.")
     else:
-        with st.spinner(f'AI가 {mode.split()[1]} 모드로 분석 중입니다...'):
-            try:
-                genai.configure(api_key=api_key)
+        with st.spinner("AI가 최적의 경로를 찾아 작성 중입니다..."):
+            
+            # 프롬프트 구성
+            if "엄격하게" in mode:
+                style = "사실 기반의 건조하고 객관적인 문체."
+                temp = 0.2
+            else:
+                style = "학생의 성장을 구체적으로 묘사하는 풍성한 문체."
+                temp = 0.75
 
-                # [중요] 모델 강제 고정 (안정성 최우선)
-                # 복잡한 로직 다 빼고 가장 잘 되는 모델 하나만 씁니다.
-                target_model = "gemini-1.5-flash"
-                
-                # 모드별 프롬프트 설정
-                if "엄격하게" in mode:
-                    temp = 0.2
-                    prompt_instruction = """
-                    1. **절대 날조 금지**: 사용자가 입력한 내용에 없는 구체적 에피소드를 절대 창작하지 마십시오.
-                    2. **담백한 서술**: 입력 정보가 부족하면 억지로 늘리지 말고, 일반적인 태도나 성향 위주로 건조하게 서술하십시오.
-                    """
-                else:
-                    temp = 0.75
-                    prompt_instruction = """
-                    1. **내용 보강**: 입력된 내용이 다소 짧더라도, 문맥에 맞는 적절한 수식어와 교육적 표현을 사용하여 풍성하게 작성하십시오.
-                    2. **자연스러운 연결**: 문장과 문장 사이를 매끄럽게 연결하여 유려한 글이 되도록 하십시오.
-                    """
+            prompt = f"""
+            당신은 고등학교 교사입니다. 아래 내용을 바탕으로 과목 세특을 작성하세요.
 
-                generation_config = genai.types.GenerationConfig(temperature=temp)
-                model = genai.GenerativeModel(target_model, generation_config=generation_config)
+            [입력 데이터]
+            - 1학기: {sem1_input}
+            - 2학기 주제: {sem2_input}
+            - 목표 분량: {target_length}자
+            - 스타일: {style}
 
-                # 키워드 처리
-                if not selected_tags:
-                    tags_str = "별도의 키워드 지정 없음. [인성/소통] -> [학업/태도] -> [진로/관심] -> [발전가능성] 순서 권장."
-                else:
-                    tags_str = f"다음 핵심 키워드를 중심으로 서술: {', '.join(selected_tags)}"
+            [필수 포함 활동 (2학기)]
+            1. **신문기사 기고문**: 관련 기사 분석 및 기고문 작성.
+            2. **원서 북리뷰**: 원서 독서 후 비평문 작성.
+            3. **AI 도구 활용**: AI를 활용한 탐구 및 한계점 분석.
 
-                # 프롬프트
-                system_prompt = f"""
-                당신은 입학사정관 관점을 가진 고등학교 교사입니다.
-                입력 정보: {student_input}
-                작성 지침: [{tags_str}]
-                
-                다음 두 가지 파트로 나누어 출력하세요. 구분선: "---SPLIT---"
+            [작성 지침]
+            - 1학기 내용은 30%로 요약, 2학기 활동은 70%로 구체적 서술.
+            - 두 내용을 자연스럽게 연결.
+            - 문체: '~함', '~임' (생기부 표준).
 
-                [Part 1] 영역별 분석 (개조식)
-                - [인성 / 학업 / 진로 / 공동체] 분류하여 요약
-                
-                ---SPLIT---
+            [출력]
+            1. 요약
+            ---SPLIT---
+            2. 본문
+            """
 
-                [Part 2] 행동특성 및 종합의견 (서술형 종합본)
-                - 문체: ~함, ~임 (해요체 금지)
-                - 구조: 사례 -> 행동 -> 성장/평가
-                - 목표 분량: 공백 포함 약 {target_length}자 (오차범위 ±10%)
-                
-                {prompt_instruction}
+            # ★★★ 무조건 성공하는 함수 호출 ★★★
+            result_text, success_model, error_logs = generate_with_fallback(prompt, manual_model)
 
-                # ★★★ 구조 및 순서 ★★★
-                1. **기본 순서 준수**: 특별히 강조할 키워드가 지정되지 않았다면, **[인성/사회성] → [학업역량] → [진로적성] → [발전가능성]** 순서로 배치하십시오.
-                2. **유기적 연결**: 각 영역을 딱딱하게 끊지 말고 자연스럽게 연결하십시오.
-                """
-
-                response = model.generate_content(system_prompt)
-                full_text = response.text
-                
-                if "---SPLIT---" in full_text:
-                    parts = full_text.split("---SPLIT---")
-                    analysis_text = parts[0].strip()
-                    final_text = parts[1].strip()
-                else:
-                    analysis_text = "영역별 분석을 생성하지 못했습니다."
-                    final_text = full_text
-
-                char_count = len(final_text)
-                char_count_no_space = len(final_text.replace(" ", "").replace("\n", ""))
-                
+            if result_text:
+                # 성공 시
                 st.success("작성 완료!")
                 
-                with st.expander("🔍 영역별 분석 내용 확인하기 (클릭)", expanded=True):
-                    st.markdown(analysis_text)
+                # 어떤 모델이 성공했는지, 실패한 모델은 무엇인지 알려줌
+                st.markdown(f"<div class='success-box'>✅ <b>{success_model}</b> 모델로 작성되었습니다.</div>", unsafe_allow_html=True)
                 
-                st.markdown("---")
-                st.markdown("### 📋 최종 제출용 종합본")
-
-                st.markdown(f"""
-                <div class="count-box">
-                    📊 목표: {target_length}자 | 실제: {char_count}자 (공백제외 {char_count_no_space}자)
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.caption(f"※ {mode.split()[1]} 모드 동작 중 ({target_model})")
-                st.text_area("결과 (복사해서 나이스에 붙여넣으세요)", value=final_text, height=350)
-
-            except Exception as e:
-                # 에러 메시지 분석 및 사용자 안내
-                error_msg = str(e)
-                if "429" in error_msg:
-                    st.error("🚨 무료 사용량을 초과했습니다. 잠시 후 다시 시도하거나, API 키를 변경해보세요.")
-                elif "404" in error_msg:
-                    st.error("🚨 중요: 'requirements.txt' 파일에 'google-generativeai>=0.8.3'이 있는지 확인하고 앱을 [Reboot] 해주세요.")
+                if error_logs:
+                    with st.expander("⚠️ 우회 기록 (클릭하여 확인)"):
+                        for log in error_logs:
+                            st.text(log)
+                            
+                # 결과 분리 및 출력
+                if "---SPLIT---" in result_text:
+                    parts = result_text.split("---SPLIT---")
+                    summary = parts[0].strip()
+                    body = parts[1].strip()
                 else:
-                    st.error(f"오류가 발생했습니다: {e}")
+                    summary = "요약 없음"
+                    body = result_text
 
-# --- 8. 푸터 ---
-st.markdown("""
-<div class="footer">
-    © 2025 <b>Chaeyun with AI</b>. All rights reserved.<br>
-    문의: <a href="mailto:inlove11@naver.com" style="color: #888; text-decoration: none;">inlove11@naver.com</a>
-</div>
-""", unsafe_allow_html=True)
+                st.markdown("### 📝 최종 결과")
+                st.text_area("결과 복사", value=body, height=400)
+                
+            else:
+                # 정말 모든 모델이 다 실패했을 때 (거의 일어날 수 없음)
+                st.error("🚨 모든 AI 모델이 응답하지 않습니다. 잠시 후 다시 시도하거나 API 키를 확인해주세요.")
+                with st.expander("상세 에러 로그"):
+                    for log in error_logs:
+                        st.text(log)
